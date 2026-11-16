@@ -6,11 +6,26 @@ import { PerformancePage } from '../pages/PerformancePage';
 import { StoragePage } from '../pages/StoragePage';
 import { NetworkPage } from '../pages/NetworkPage';
 import { SettingsPage } from '../pages/SettingsPage';
+import { DeviceDiscoveryPage } from '../pages/DeviceDiscoveryPage';
+import { LoginPage } from '../pages/LoginPage';
+import { ProtectedRoute } from '../components/auth/ProtectedRoute';
 
 export const router = createBrowserRouter([
   {
+    path: '/discover',
+    element: <DeviceDiscoveryPage />,
+  },
+  {
+    path: '/login',
+    element: <LoginPage />,
+  },
+  {
     path: '/',
-    element: <AppLayout />,
+    element: (
+      <ProtectedRoute>
+        <AppLayout />
+      </ProtectedRoute>
+    ),
     children: [
       {
         index: true,

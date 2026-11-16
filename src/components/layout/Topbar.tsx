@@ -1,9 +1,10 @@
 import React from 'react';
 import { useLocation } from 'react-router-dom';
-import { Menu, RefreshCw, Sun, Moon, Laptop } from 'lucide-react';
+import { Menu, RefreshCw, Sun, Moon, Laptop, LogOut, User, Shield } from 'lucide-react';
 import { ConnectionIndicator } from '../common/ConnectionIndicator';
 import { useMetrics } from '../../context/MetricsContext';
 import { useTheme } from '../../context/ThemeContext';
+import { useAuth } from '../../context/AuthContext';
 import { formatTimeOnly } from '../../utils/formatDate';
 
 interface TopbarProps {
@@ -23,6 +24,7 @@ export const Topbar: React.FC<TopbarProps> = ({ onToggleSidebar }) => {
   const location = useLocation();
   const { lastUpdated, refreshMetrics, isLoading } = useMetrics();
   const { theme, setTheme } = useTheme();
+  const { user, logout } = useAuth();
 
   // Find matching title, handling dynamic routes like /processes/:pid
   let title = PAGE_TITLES[location.pathname];
@@ -59,13 +61,13 @@ export const Topbar: React.FC<TopbarProps> = ({ onToggleSidebar }) => {
         </div>
       </div>
 
-      {/* Right: Status, Refresh, Theme */}
-      <div className="flex items-center gap-3">
+      {/* Right: Status, Refresh, User Profile, Theme, Logout */}
+      <div className="flex items-center gap-2.5 sm:gap-3">
         {/* Backend & SSE status badge */}
         <ConnectionIndicator />
 
         {/* Last update timestamp */}
-        <div className="hidden md:flex items-center gap-1.5 text-xs font-mono text-slate-400 border-l border-slate-800 pl-3">
+        <div className="hidden xl:flex items-center gap-1.5 text-xs font-mono text-slate-400 border-l border-slate-800 pl-3">
           <span>Updated:</span>
           <span className="text-slate-200">
             {lastUpdated ? formatTimeOnly(lastUpdated) : '—'}
@@ -92,6 +94,35 @@ export const Topbar: React.FC<TopbarProps> = ({ onToggleSidebar }) => {
         >
           <ThemeIcon className="w-4 h-4 text-amber-400 dark:text-sky-300" />
         </button>
+
+        {/* Authenticated User & Role Indicator */}
+        {user && (
+          <div className="flex items-center gap-2 pl-2 sm:pl-3 border-l border-slate-800">
+            <div className="hidden sm:flex flex-col items-end">
+              <span className="text-xs font-semibold text-slate-200 leading-tight">
+                {user.username}
+              </span>
+              <span className="text-[10px] font-mono text-rose-400 flex items-center gap-0.5">
+                <Shield className="w-2.5 h-2.5" />
+                <span>{user.role === 'admin' ? 'Administrator' : 'Standard User'}</span>
+              </span>
+            </div>
+
+            <div className="w-8 h-8 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-300">
+              <User className="w-4 h-4 text-rose-400" />
+            </div>
+
+            {/* Logout Button */}
+            <button
+              onClick={() => logout()}
+              className="p-2 rounded-xl text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition border border-slate-800"
+              title="Log out and terminate session"
+              aria-label="Log out"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
+          </div>
+        )}
       </div>
     </header>
   );

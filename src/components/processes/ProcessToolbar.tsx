@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Plus, RefreshCw, Radio, Filter } from 'lucide-react';
 import { ProcessListQuery } from '../../types/process';
+import { useAuth } from '../../context/AuthContext';
 
 interface ProcessToolbarProps {
   query: ProcessListQuery;
@@ -24,6 +25,9 @@ export const ProcessToolbar: React.FC<ProcessToolbarProps> = ({
   onToggleLiveStream,
 }) => {
   const [searchTerm, setSearchTerm] = useState(query.search || '');
+
+  const { hasPermission } = useAuth();
+  const canCreate = hasPermission('process.create');
 
   // Debounce search input by 300ms
   useEffect(() => {
@@ -80,13 +84,15 @@ export const ProcessToolbar: React.FC<ProcessToolbarProps> = ({
             <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin text-rose-400' : ''}`} />
           </button>
 
-          <button
-            onClick={onCreateProcess}
-            className="px-3.5 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-medium transition shadow-sm flex items-center gap-1.5"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Create Process</span>
-          </button>
+          {canCreate && (
+            <button
+              onClick={onCreateProcess}
+              className="px-3.5 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-medium transition shadow-sm flex items-center gap-1.5"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Create Process</span>
+            </button>
+          )}
         </div>
       </div>
 

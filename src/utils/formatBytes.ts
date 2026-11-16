@@ -1,8 +1,8 @@
 /**
- * Format bytes into human-readable IEC / SI units
+ * Format bytes into human-readable units (MB, GB, KB, B)
  * @param bytes Number of bytes
  * @param decimals Decimal places (default 1)
- * @param binary If true uses 1024 (KiB, MiB), otherwise 1000 (default true)
+ * @param binary If true uses 1024 divisor (default true)
  */
 export function formatBytes(bytes: number | null | undefined, decimals = 1, binary = true): string {
   if (bytes === null || bytes === undefined || isNaN(bytes)) {
@@ -13,9 +13,7 @@ export function formatBytes(bytes: number | null | undefined, decimals = 1, bina
 
   const k = binary ? 1024 : 1000;
   const dm = decimals < 0 ? 0 : decimals;
-  const sizes = binary
-    ? ['B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB']
-    : ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];
+  const sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];
 
   const i = Math.floor(Math.log(Math.abs(bytes)) / Math.log(k));
   const safeIndex = Math.min(i, sizes.length - 1);

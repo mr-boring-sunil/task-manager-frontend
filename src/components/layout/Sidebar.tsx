@@ -1,5 +1,5 @@
 import React from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
   Cpu,
@@ -9,8 +9,10 @@ import {
   Settings,
   X,
   Server,
+  ArrowLeftRight,
 } from 'lucide-react';
 import { useBackend } from '../../context/BackendContext';
+import { useAuth } from '../../context/AuthContext';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -18,7 +20,14 @@ interface SidebarProps {
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
+  const navigate = useNavigate();
   const { baseUrl, isOnline, health } = useBackend();
+  const { selectedDevice, clearDevice } = useAuth();
+
+  const handleSwitchDevice = () => {
+    clearDevice();
+    navigate('/discover');
+  };
 
   const navItems = [
     { to: '/', label: 'Overview', icon: LayoutDashboard },
@@ -110,7 +119,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
               <div className="flex items-center gap-2">
                 <Server className="w-3.5 h-3.5 text-slate-400" />
                 <span className="text-xs font-mono font-medium text-slate-300 truncate max-w-[120px]">
-                  {hostLabel}
+                  {selectedDevice?.name || hostLabel}
                 </span>
               </div>
               <span
@@ -134,6 +143,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 <span className="text-slate-400">{health.status}</span>
               </div>
             )}
+
+            <button
+              onClick={handleSwitchDevice}
+              className="w-full mt-2.5 pt-2 border-t border-slate-800 text-[11px] font-mono text-slate-400 hover:text-rose-400 transition flex items-center justify-center gap-1.5"
+            >
+              <ArrowLeftRight className="w-3 h-3" />
+              <span>Switch Device</span>
+            </button>
           </div>
         </div>
       </aside>

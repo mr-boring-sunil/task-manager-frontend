@@ -22,6 +22,7 @@ import { ErrorState } from '../common/ErrorState';
 import { formatBytes } from '../../utils/formatBytes';
 import { formatPercentage } from '../../utils/formatPercentage';
 import { formatDate } from '../../utils/formatDate';
+import { useAuth } from '../../context/AuthContext';
 
 interface ProcessInspectorProps {
   process: ProcessDetails | null;
@@ -59,6 +60,13 @@ export const ProcessInspector: React.FC<ProcessInspectorProps> = ({
       setTimeout(() => setCopied(false), 2000);
     }
   };
+
+  const { hasPermission } = useAuth();
+  const canPause = hasPermission('process.pause');
+  const canResume = hasPermission('process.resume');
+  const canPriority = hasPermission('process.priority');
+  const canTerminate = hasPermission('process.terminate');
+  const hasAnyMutation = canPause || canResume || canPriority || canTerminate;
 
   const isStopped = process?.state.toLowerCase() === 'stopped';
   const isZombie = process?.state.toLowerCase() === 'zombie';
@@ -115,48 +123,56 @@ export const ProcessInspector: React.FC<ProcessInspectorProps> = ({
           />
         ) : process ? (
           <>
-            {/* Action Bar / Controls */}
-            <div className="p-3.5 rounded-2xl bg-slate-850 border border-slate-800 flex flex-wrap items-center gap-2 justify-between">
-              <div className="flex items-center gap-2">
-                {isStopped ? (
+            {/* Action Bar / Controls (rendered only if user has mutation permissions) */}
+            {hasAnyMutation && (
+              <div className="p-3.5 rounded-2xl bg-slate-850 border border-slate-800 flex flex-wrap items-center gap-2 justify-between">
+                <div className="flex items-center gap-2">
+                  {isStopped && canResume && (
+                    <button
+                      onClick={() => onResume(process.pid)}
+                      disabled={isZombie || !!actionLoading}
+                      className="px-3 py-1.5 rounded-lg bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 border border-emerald-500/30 text-xs font-medium transition flex items-center gap-1.5 disabled:opacity-40"
+                    >
+                      <Play className="w-3.5 h-3.5" />
+                      <span>Resume</span>
+                    </button>
+                  )}
+
+                  {!isStopped && canPause && (
+                    <button
+                      onClick={() => onPause(process.pid)}
+                      disabled={isZombie || !!actionLoading}
+                      className="px-3 py-1.5 rounded-lg bg-amber-600/20 hover:bg-amber-600/30 text-amber-400 border border-amber-500/30 text-xs font-medium transition flex items-center gap-1.5 disabled:opacity-40"
+                    >
+                      <Pause className="w-3.5 h-3.5" />
+                      <span>Pause</span>
+                    </button>
+                  )}
+
+                  {canPriority && (
+                    <button
+                      onClick={() => onChangePriority(process)}
+                      disabled={isZombie || !!actionLoading}
+                      className="px-3 py-1.5 rounded-lg bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-400 border border-indigo-500/30 text-xs font-medium transition flex items-center gap-1.5 disabled:opacity-40"
+                    >
+                      <SlidersHorizontal className="w-3.5 h-3.5" />
+                      <span>Nice Priority</span>
+                    </button>
+                  )}
+                </div>
+
+                {canTerminate && (
                   <button
-                    onClick={() => onResume(process.pid)}
-                    disabled={isZombie || !!actionLoading}
-                    className="px-3 py-1.5 rounded-lg bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 border border-emerald-500/30 text-xs font-medium transition flex items-center gap-1.5 disabled:opacity-40"
+                    onClick={() => onTerminate(process, 'SIGTERM')}
+                    disabled={!!actionLoading}
+                    className="px-3 py-1.5 rounded-lg bg-rose-600/20 hover:bg-rose-600/30 text-rose-400 border border-rose-500/30 text-xs font-medium transition flex items-center gap-1.5 ml-auto"
                   >
-                    <Play className="w-3.5 h-3.5" />
-                    <span>Resume</span>
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => onPause(process.pid)}
-                    disabled={isZombie || !!actionLoading}
-                    className="px-3 py-1.5 rounded-lg bg-amber-600/20 hover:bg-amber-600/30 text-amber-400 border border-amber-500/30 text-xs font-medium transition flex items-center gap-1.5 disabled:opacity-40"
-                  >
-                    <Pause className="w-3.5 h-3.5" />
-                    <span>Pause</span>
+                    <AlertOctagon className="w-3.5 h-3.5" />
+                    <span>Terminate</span>
                   </button>
                 )}
-
-                <button
-                  onClick={() => onChangePriority(process)}
-                  disabled={isZombie || !!actionLoading}
-                  className="px-3 py-1.5 rounded-lg bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-400 border border-indigo-500/30 text-xs font-medium transition flex items-center gap-1.5 disabled:opacity-40"
-                >
-                  <SlidersHorizontal className="w-3.5 h-3.5" />
-                  <span>Nice Priority</span>
-                </button>
               </div>
-
-              <button
-                onClick={() => onTerminate(process, 'SIGTERM')}
-                disabled={!!actionLoading}
-                className="px-3 py-1.5 rounded-lg bg-rose-600/20 hover:bg-rose-600/30 text-rose-400 border border-rose-500/30 text-xs font-medium transition flex items-center gap-1.5 ml-auto"
-              >
-                <AlertOctagon className="w-3.5 h-3.5" />
-                <span>Terminate</span>
-              </button>
-            </div>
+            )}
 
             {/* SECTION A: Process Identity */}
             <section className="space-y-3">

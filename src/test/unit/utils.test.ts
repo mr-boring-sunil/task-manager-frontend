@@ -12,10 +12,10 @@ describe('Frontend Utility Functions', () => {
       expect(formatBytes(null)).toBe('0 B');
     });
 
-    it('formats KiB and MiB correctly', () => {
-      expect(formatBytes(1024)).toBe('1 KiB');
-      expect(formatBytes(1048576)).toBe('1 MiB');
-      expect(formatBytes(1073741824)).toBe('1 GiB');
+    it('formats KB and MB correctly', () => {
+      expect(formatBytes(1024)).toBe('1 KB');
+      expect(formatBytes(1048576)).toBe('1 MB');
+      expect(formatBytes(1073741824)).toBe('1 GB');
     });
 
     it('formats rates with /s', () => {

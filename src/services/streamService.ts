@@ -91,7 +91,7 @@ export class StreamManager {
     const url = `${baseUrl}/api/v1/stream/${channel}?interval=${ch.intervalMs}`;
 
     try {
-      const es = new EventSource(url);
+      const es = new EventSource(url, { withCredentials: true });
       ch.eventSource = es;
 
       es.addEventListener('open', () => {

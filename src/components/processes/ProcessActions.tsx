@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { MoreVertical, Eye, Play, Pause, AlertOctagon, SlidersHorizontal } from 'lucide-react';
 import { Process, SignalType } from '../../types/process';
+import { useAuth } from '../../context/AuthContext';
 
 interface ProcessActionsProps {
   process: Process;
@@ -23,6 +24,12 @@ export const ProcessActions: React.FC<ProcessActionsProps> = ({
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const { hasPermission } = useAuth();
+
+  const canPause = hasPermission('process.pause');
+  const canResume = hasPermission('process.resume');
+  const canPriority = hasPermission('process.priority');
+  const canTerminate = hasPermission('process.terminate');
 
   const isStopped = process.state.toLowerCase() === 'stopped';
   const isZombie = process.state.toLowerCase() === 'zombie';
@@ -68,7 +75,7 @@ export const ProcessActions: React.FC<ProcessActionsProps> = ({
           </button>
 
           {/* Pause / Resume */}
-          {isStopped ? (
+          {isStopped && canResume && (
             <button
               onClick={() => {
                 setIsOpen(false);
@@ -80,7 +87,9 @@ export const ProcessActions: React.FC<ProcessActionsProps> = ({
               <Play className="w-3.5 h-3.5 text-emerald-400" />
               <span>Resume Process</span>
             </button>
-          ) : (
+          )}
+
+          {!isStopped && canPause && (
             <button
               onClick={() => {
                 setIsOpen(false);
@@ -95,31 +104,36 @@ export const ProcessActions: React.FC<ProcessActionsProps> = ({
           )}
 
           {/* Change Priority */}
-          <button
-            onClick={() => {
-              setIsOpen(false);
-              onChangePriority(process);
-            }}
-            disabled={isZombie}
-            className="w-full flex items-center gap-2.5 px-3.5 py-2 text-slate-300 hover:text-white hover:bg-slate-800/80 text-left transition disabled:opacity-40"
-          >
-            <SlidersHorizontal className="w-3.5 h-3.5 text-indigo-400" />
-            <span>Change Priority</span>
-          </button>
+          {canPriority && (
+            <button
+              onClick={() => {
+                setIsOpen(false);
+                onChangePriority(process);
+              }}
+              disabled={isZombie}
+              className="w-full flex items-center gap-2.5 px-3.5 py-2 text-slate-300 hover:text-white hover:bg-slate-800/80 text-left transition disabled:opacity-40"
+            >
+              <SlidersHorizontal className="w-3.5 h-3.5 text-indigo-400" />
+              <span>Change Priority</span>
+            </button>
+          )}
 
-          <div className="my-1 border-t border-slate-800" />
-
-          {/* Terminate */}
-          <button
-            onClick={() => {
-              setIsOpen(false);
-              onTerminate(process, 'SIGTERM');
-            }}
-            className="w-full flex items-center gap-2.5 px-3.5 py-2 text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 text-left transition"
-          >
-            <AlertOctagon className="w-3.5 h-3.5" />
-            <span>Terminate Process</span>
-          </button>
+          {canTerminate && (
+            <>
+              <div className="my-1 border-t border-slate-800" />
+              {/* Terminate */}
+              <button
+                onClick={() => {
+                  setIsOpen(false);
+                  onTerminate(process, 'SIGTERM');
+                }}
+                className="w-full flex items-center gap-2.5 px-3.5 py-2 text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 text-left transition"
+              >
+                <AlertOctagon className="w-3.5 h-3.5" />
+                <span>Terminate Process</span>
+              </button>
+            </>
+          )}
         </div>
       )}
     </div>

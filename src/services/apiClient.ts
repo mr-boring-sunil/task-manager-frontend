@@ -24,7 +24,9 @@ export class ApiClient {
   private baseUrl: string;
   private token: string | null = null;
   private authType: 'apiKey' | 'bearer' = 'apiKey';
+  private csrfToken: string | null = null;
   private defaultTimeout = 10000;
+  private unauthorizedListeners: Array<() => void> = [];
 
   constructor() {
     // Default to origin in browser or http://localhost:5000 if different port
@@ -68,12 +70,27 @@ export class ApiClient {
     }
   }
 
+  public setCsrfToken(csrf: string | null): void {
+    this.csrfToken = csrf;
+  }
+
+  public getCsrfToken(): string | null {
+    return this.csrfToken;
+  }
+
+  public onUnauthorized(listener: () => void): () => void {
+    this.unauthorizedListeners.push(listener);
+    return () => {
+      this.unauthorizedListeners = this.unauthorizedListeners.filter((l) => l !== listener);
+    };
+  }
+
   private buildUrl(path: string): string {
     const cleanPath = path.startsWith('/') ? path : `/${path}`;
     return `${this.baseUrl}${cleanPath}`;
   }
 
-  private getHeaders(customHeaders: Record<string, string> = {}): Headers {
+  private getHeaders(customHeaders: Record<string, string> = {}, method = 'GET'): Headers {
     const headers = new Headers();
     headers.set('Accept', 'application/json');
 
@@ -83,6 +100,10 @@ export class ApiClient {
       } else {
         headers.set('Authorization', `Bearer ${this.token}`);
       }
+    }
+
+    if (this.csrfToken && ['POST', 'PATCH', 'PUT', 'DELETE'].includes(method.toUpperCase())) {
+      headers.set('x-csrf-token', this.csrfToken);
     }
 
     Object.entries(customHeaders).forEach(([k, v]) => {
@@ -100,8 +121,9 @@ export class ApiClient {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs);
 
+    const method = (options.method || 'GET').toUpperCase();
     const url = this.buildUrl(path);
-    const headers = this.getHeaders(options.headers as Record<string, string>);
+    const headers = this.getHeaders(options.headers as Record<string, string>, method);
 
     if (options.body && typeof options.body === 'string') {
       headers.set('Content-Type', 'application/json');
@@ -111,6 +133,7 @@ export class ApiClient {
       const response = await fetch(url, {
         ...options,
         headers,
+        credentials: 'include', // Ensure session cookies are sent across origins
         signal: controller.signal,
       });
 
@@ -126,6 +149,15 @@ export class ApiClient {
           response.status,
           'INTERNAL_ERROR'
         );
+      }
+
+      if (response.status === 401 && !path.includes('/auth/login')) {
+        // Trigger unauthorized listeners for session expiry / revocation
+        this.unauthorizedListeners.forEach((fn) => {
+          try {
+            fn();
+          } catch (e) {}
+        });
       }
 
       if (!response.ok) {
