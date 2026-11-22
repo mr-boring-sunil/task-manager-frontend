@@ -54,6 +54,8 @@ export const MetricsProvider: React.FC<{ children: React.ReactNode }> = ({ child
       cpu: data.cpuUtilization ?? 0,
       memory: data.ramUtilizationPercentage ?? 0,
       temperature: data.cpuTemperature,
+      networkRxBytesPerSec: Math.max(0, data.networkRxBytesPerSec ?? 0),
+      networkTxBytesPerSec: Math.max(0, data.networkTxBytesPerSec ?? 0),
     };
 
     // Rolling window: keep samples within historyWindowSeconds

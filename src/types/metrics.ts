@@ -66,6 +66,8 @@ export interface OverviewMetrics {
   cpuTemperature: number | null;
   cpuTemperatureStatus: 'available' | 'unavailable';
   systemUptime: number;
+  networkRxBytesPerSec?: number;
+  networkTxBytesPerSec?: number;
 }
 
 export interface PerformanceSample {

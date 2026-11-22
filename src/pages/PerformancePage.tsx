@@ -394,7 +394,14 @@ export const PerformancePage: React.FC = () => {
 
               {/* Bandwidth Graph */}
               <div className="card-base p-5">
-                <h3 className="text-sm font-semibold text-slate-200 mb-3">Live Network Transfer Speeds</h3>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+                  <div>
+                    <h3 className="text-sm font-semibold text-slate-200">Live Network Transfer Speeds</h3>
+                    <p className="text-xs text-slate-400">
+                      Rolling 60-second throughput history across active network interfaces
+                    </p>
+                  </div>
+                </div>
                 <NetworkChart data={history} height={240} />
               </div>
             </div>

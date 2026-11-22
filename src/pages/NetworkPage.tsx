@@ -166,9 +166,26 @@ export const NetworkPage: React.FC = () => {
 
           {/* Live Bandwidth Chart */}
           <div className="card-base p-5">
-            <h3 className="text-sm font-semibold text-slate-200 mb-3">
-              Live Bandwidth History (Rolling 60s)
-            </h3>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+              <div>
+                <h3 className="text-sm font-semibold text-slate-200">
+                  Live Bandwidth History (Rolling 60s)
+                </h3>
+                <p className="text-xs text-slate-400">
+                  Aggregate download and upload transfer rates across network adapters
+                </p>
+              </div>
+              <div className="flex items-center gap-4 text-xs font-mono">
+                <span className="flex items-center gap-1.5 text-emerald-400">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                  RX: {formatRate(totalRxRate)}
+                </span>
+                <span className="flex items-center gap-1.5 text-sky-400">
+                  <span className="w-2 h-2 rounded-full bg-sky-400" />
+                  TX: {formatRate(totalTxRate)}
+                </span>
+              </div>
+            </div>
             <NetworkChart data={history} height={260} />
           </div>
         </div>

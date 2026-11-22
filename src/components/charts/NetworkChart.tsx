@@ -18,7 +18,15 @@ interface NetworkChartProps {
 }
 
 export const NetworkChart: React.FC<NetworkChartProps> = ({ data, height = 220 }) => {
-  if (!data || data.length === 0) {
+  const chartData = React.useMemo(() => {
+    return (data || []).map((s) => ({
+      ...s,
+      networkRxBytesPerSec: Math.max(0, s.networkRxBytesPerSec || 0),
+      networkTxBytesPerSec: Math.max(0, s.networkTxBytesPerSec || 0),
+    }));
+  }, [data]);
+
+  if (!chartData || chartData.length === 0) {
     return (
       <div
         className="flex items-center justify-center text-xs font-mono text-slate-500 bg-slate-900/50 rounded-xl border border-slate-800"
@@ -32,15 +40,15 @@ export const NetworkChart: React.FC<NetworkChartProps> = ({ data, height = 220 }
   return (
     <div className="w-full" style={{ height }}>
       <ResponsiveContainer width="100%" height="100%">
-        <AreaChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+        <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
           <defs>
             <linearGradient id="rxGradient" x1="0" y1="0" x2="0" y2="1">
               <stop offset="5%" stopColor="#10b981" stopOpacity={0.35} />
               <stop offset="95%" stopColor="#10b981" stopOpacity={0.0} />
             </linearGradient>
             <linearGradient id="txGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#818cf8" stopOpacity={0.35} />
-              <stop offset="95%" stopColor="#818cf8" stopOpacity={0.0} />
+              <stop offset="5%" stopColor="#38bdf8" stopOpacity={0.35} />
+              <stop offset="95%" stopColor="#38bdf8" stopOpacity={0.0} />
             </linearGradient>
           </defs>
           <CartesianGrid strokeDasharray="3 3" stroke="#334155" opacity={0.4} />
@@ -55,6 +63,8 @@ export const NetworkChart: React.FC<NetworkChartProps> = ({ data, height = 220 }
             tick={{ fontSize: 10, fontFamily: 'monospace' }}
             tickFormatter={(v) => formatRate(v, 0)}
             tickLine={false}
+            domain={[0, (dataMax: number) => Math.max(dataMax * 1.15, 1024)]}
+            allowDataOverflow={false}
           />
           <Tooltip
             contentStyle={{
@@ -63,6 +73,7 @@ export const NetworkChart: React.FC<NetworkChartProps> = ({ data, height = 220 }
               borderRadius: '0.75rem',
               fontSize: '12px',
               fontFamily: 'monospace',
+              boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.5)',
             }}
             formatter={(val: any, name: any) => [
               formatRate(Number(val) || 0),
@@ -92,7 +103,7 @@ export const NetworkChart: React.FC<NetworkChartProps> = ({ data, height = 220 }
           <Area
             type="monotone"
             dataKey="networkTxBytesPerSec"
-            stroke="#818cf8"
+            stroke="#38bdf8"
             strokeWidth={2}
             fillOpacity={1}
             fill="url(#txGradient)"
