@@ -33,6 +33,7 @@ export const ProcessActions: React.FC<ProcessActionsProps> = ({
 
   const isStopped = process.state.toLowerCase() === 'stopped';
   const isZombie = process.state.toLowerCase() === 'zombie';
+  const isUnknown = process.state.toLowerCase() === 'unknown';
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -96,10 +97,11 @@ export const ProcessActions: React.FC<ProcessActionsProps> = ({
                 onPause(process.pid);
               }}
               disabled={isZombie}
-              className="w-full flex items-center gap-2.5 px-3.5 py-2 text-slate-300 hover:text-white hover:bg-slate-800/80 text-left transition disabled:opacity-40"
+              className={`w-full flex items-center gap-2.5 px-3.5 py-2 text-slate-300 hover:text-white hover:bg-slate-800/80 text-left transition disabled:opacity-40 ${isUnknown ? 'opacity-70' : ''}`}
+              title={isUnknown ? 'State is unknown — pause may not apply' : undefined}
             >
               <Pause className="w-3.5 h-3.5 text-amber-400" />
-              <span>Pause Process</span>
+              <span>Pause Process{isUnknown ? ' (?)' : ''}</span>
             </button>
           )}
 

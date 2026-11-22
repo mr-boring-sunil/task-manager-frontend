@@ -27,14 +27,19 @@ export const ProcessRow: React.FC<ProcessRowProps> = ({
   onTerminate,
   isLoading = false,
 }) => {
+  const isUnknown = process.state.toLowerCase() === 'unknown';
+
   return (
     <tr
       onClick={() => onSelect(process)}
       className={`group border-b border-slate-800/80 transition-colors cursor-pointer select-none ${
         isSelected
           ? 'bg-rose-500/10 hover:bg-rose-500/15'
+          : isUnknown
+          ? 'bg-orange-500/5 hover:bg-orange-500/10'
           : 'hover:bg-slate-800/50'
       }`}
+      title={isUnknown ? 'State unknown — kernel reported an unrecognised state code' : undefined}
     >
       {/* PID */}
       <td className="table-body-cell font-mono text-xs font-semibold text-rose-400">

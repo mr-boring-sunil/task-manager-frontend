@@ -126,6 +126,12 @@ export const ProcessesPage: React.FC = () => {
     return Array.from(set);
   }, [processes]);
 
+  // Count processes with unknown state on the current page
+  const unknownCount = useMemo(
+    () => processes.filter((p) => p.state.toLowerCase() === 'unknown').length,
+    [processes]
+  );
+
   // Process Actions Handlers
   const handlePause = async (pid: number) => {
     try {
@@ -162,6 +168,7 @@ export const ProcessesPage: React.FC = () => {
         availableUsers={availableUsers}
         isLiveStreamActive={isLiveStreamActive}
         onToggleLiveStream={() => setIsLiveStreamActive((prev) => !prev)}
+        unknownCount={unknownCount}
       />
 
       {/* Main Process Table */}
@@ -206,8 +213,11 @@ export const ProcessesPage: React.FC = () => {
       {/* Create Process Modal */}
       <CreateProcessDialog
         isOpen={isCreateOpen}
-        onSuccess={() => {
+        onSuccess={(result) => {
           fetchProcesses();
+          if (result?.pid) {
+            setInspectPid(result.pid);
+          }
         }}
         onInspectProcess={(newPid) => {
           setInspectPid(newPid);

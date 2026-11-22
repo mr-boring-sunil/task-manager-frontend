@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Plus, RefreshCw, Radio, Filter } from 'lucide-react';
+import { Search, Plus, RefreshCw, Radio, Filter, AlertTriangle } from 'lucide-react';
 import { ProcessListQuery } from '../../types/process';
 import { useAuth } from '../../context/AuthContext';
 
@@ -12,6 +12,7 @@ interface ProcessToolbarProps {
   availableUsers?: string[];
   isLiveStreamActive?: boolean;
   onToggleLiveStream?: () => void;
+  unknownCount?: number;
 }
 
 export const ProcessToolbar: React.FC<ProcessToolbarProps> = ({
@@ -23,6 +24,7 @@ export const ProcessToolbar: React.FC<ProcessToolbarProps> = ({
   availableUsers = ['pi', 'root'],
   isLiveStreamActive = true,
   onToggleLiveStream,
+  unknownCount = 0,
 }) => {
   const [searchTerm, setSearchTerm] = useState(query.search || '');
 
@@ -170,6 +172,23 @@ export const ProcessToolbar: React.FC<ProcessToolbarProps> = ({
           <option value="100">100 / page</option>
         </select>
       </div>
+
+      {/* Unknown State Warning Banner */}
+      {unknownCount > 0 && (
+        <div className="flex items-center gap-2 mt-2 pt-2 border-t border-slate-800/60 text-[11px] text-orange-400 font-mono">
+          <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+          <span>
+            <strong>{unknownCount}</strong> process{unknownCount !== 1 ? 'es' : ''} with{' '}
+            <button
+              onClick={() => onQueryChange({ state: 'unknown', page: 1 })}
+              className="underline underline-offset-2 hover:text-orange-300 transition"
+            >
+              unknown state
+            </button>
+            {' '}on this page — kernel reported an unrecognised state code. These may be ephemeral or transitioning.
+          </span>
+        </div>
+      )}
     </div>
   );
 };

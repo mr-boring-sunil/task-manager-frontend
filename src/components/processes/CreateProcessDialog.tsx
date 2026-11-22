@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, Trash2, X, Terminal, CheckCircle2, AlertCircle } from 'lucide-react';
 import { processService } from '../../services/processService';
 import { SpawnedProcessResult } from '../../types/process';
@@ -32,9 +32,12 @@ export const CreateProcessDialog: React.FC<CreateProcessDialogProps> = ({
   onInspectProcess,
 }) => {
   const [command, setCommand] = useState<string>('python3');
-  const [args, setArgs] = useState<string[]>(['-m', 'http.server', '8080']);
+  const [args, setArgs] = useState<string[]>([]);
   const [newArg, setNewArg] = useState<string>('');
-  const [workingDir, setWorkingDir] = useState<string>('/home/pi');
+  // BUG FIX: Default workingDir to '' (empty) so it is omitted from the payload.
+  // The previous default of '/home/pi' caused a ValidationError on non-Raspberry Pi
+  // hosts because validateCwd() calls fs.existsSync() and throws when the path is absent.
+  const [workingDir, setWorkingDir] = useState<string>('');
   const [envPairs, setEnvPairs] = useState<{ key: string; value: string }[]>([]);
   const [envKey, setEnvKey] = useState<string>('');
   const [envVal, setEnvVal] = useState<string>('');
@@ -42,6 +45,24 @@ export const CreateProcessDialog: React.FC<CreateProcessDialogProps> = ({
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [spawnedResult, setSpawnedResult] = useState<SpawnedProcessResult | null>(null);
+
+  // BUG FIX: Reset ALL form state whenever the dialog transitions from closed → open.
+  // Previously only spawnedResult and error were cleared in handleResetAndClose, but
+  // the component stays mounted (guarded by `if (!isOpen) return null`), so command,
+  // args, workingDir, envPairs etc. persisted across openings.
+  useEffect(() => {
+    if (isOpen) {
+      setCommand('python3');
+      setArgs([]);
+      setNewArg('');
+      setWorkingDir('');
+      setEnvPairs([]);
+      setEnvKey('');
+      setEnvVal('');
+      setError(null);
+      setSpawnedResult(null);
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -104,6 +125,13 @@ export const CreateProcessDialog: React.FC<CreateProcessDialogProps> = ({
   const handleResetAndClose = () => {
     setSpawnedResult(null);
     setError(null);
+    setCommand('python3');
+    setArgs([]);
+    setWorkingDir('');
+    setEnvPairs([]);
+    setEnvKey('');
+    setEnvVal('');
+    setNewArg('');
     onClose();
   };
 

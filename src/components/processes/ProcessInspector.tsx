@@ -30,8 +30,8 @@ interface ProcessInspectorProps {
   error: string | null;
   onClose: () => void;
   onRefresh: () => void;
-  onPause: (pid: number) => void;
-  onResume: (pid: number) => void;
+  onPause: () => void;
+  onResume: () => void;
   onChangePriority: (process: ProcessDetails) => void;
   onTerminate: (process: ProcessDetails, signal: SignalType) => void;
   actionLoading?: string | null;
@@ -70,6 +70,7 @@ export const ProcessInspector: React.FC<ProcessInspectorProps> = ({
 
   const isStopped = process?.state.toLowerCase() === 'stopped';
   const isZombie = process?.state.toLowerCase() === 'zombie';
+  const isUnknown = process?.state.toLowerCase() === 'unknown';
 
   return (
     <div className="fixed inset-y-0 right-0 z-50 w-full max-w-xl bg-slate-900 border-l border-slate-800 shadow-2xl flex flex-col animate-in slide-in-from-right duration-200">
@@ -123,13 +124,26 @@ export const ProcessInspector: React.FC<ProcessInspectorProps> = ({
           />
         ) : process ? (
           <>
+            {/* Unknown State Notice */}
+            {isUnknown && (
+              <div className="p-3 rounded-xl bg-orange-500/10 border border-orange-500/30 text-orange-300 text-xs flex items-start gap-2">
+                <span className="mt-0.5 shrink-0">⚠</span>
+                <span>
+                  <strong>State Undetermined</strong> — The kernel reported an unrecognised state code for this process.
+                  It may be ephemeral, transitioning between states, or running in a mode not covered by standard Linux
+                  state codes (e.g. a tracing state or a brief scheduling artifact). Pause/Resume may still be attempted
+                  via SIGSTOP/SIGCONT.
+                </span>
+              </div>
+            )}
+
             {/* Action Bar / Controls (rendered only if user has mutation permissions) */}
             {hasAnyMutation && (
               <div className="p-3.5 rounded-2xl bg-slate-850 border border-slate-800 flex flex-wrap items-center gap-2 justify-between">
                 <div className="flex items-center gap-2">
                   {isStopped && canResume && (
                     <button
-                      onClick={() => onResume(process.pid)}
+                      onClick={() => onResume()}
                       disabled={isZombie || !!actionLoading}
                       className="px-3 py-1.5 rounded-lg bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 border border-emerald-500/30 text-xs font-medium transition flex items-center gap-1.5 disabled:opacity-40"
                     >
@@ -140,7 +154,7 @@ export const ProcessInspector: React.FC<ProcessInspectorProps> = ({
 
                   {!isStopped && canPause && (
                     <button
-                      onClick={() => onPause(process.pid)}
+                      onClick={() => onPause()}
                       disabled={isZombie || !!actionLoading}
                       className="px-3 py-1.5 rounded-lg bg-amber-600/20 hover:bg-amber-600/30 text-amber-400 border border-amber-500/30 text-xs font-medium transition flex items-center gap-1.5 disabled:opacity-40"
                     >
