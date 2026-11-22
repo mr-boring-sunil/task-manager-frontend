@@ -21,15 +21,16 @@ export const ProcessToolbar: React.FC<ProcessToolbarProps> = ({
   onRefresh,
   onCreateProcess,
   isLoading = false,
-  availableUsers = ['pi', 'root'],
+  availableUsers = [],
   isLiveStreamActive = true,
   onToggleLiveStream,
   unknownCount = 0,
 }) => {
   const [searchTerm, setSearchTerm] = useState(query.search || '');
 
-  const { hasPermission } = useAuth();
+  const { user, hasPermission } = useAuth();
   const canCreate = hasPermission('process.create');
+  const isAdmin = user?.role === 'admin';
 
   // Debounce search input by 300ms
   useEffect(() => {
@@ -124,9 +125,14 @@ export const ProcessToolbar: React.FC<ProcessToolbarProps> = ({
         <select
           value={query.username || ''}
           onChange={(e) => onQueryChange({ username: e.target.value || undefined, page: 1 })}
-          className="px-2.5 py-1.5 bg-slate-800 border border-slate-700 rounded-lg text-slate-200 text-xs font-mono focus:outline-none focus:border-rose-500"
+          disabled={!isAdmin && Boolean(user?.username)}
+          className="px-2.5 py-1.5 bg-slate-800 border border-slate-700 rounded-lg text-slate-200 text-xs font-mono focus:outline-none focus:border-rose-500 disabled:opacity-60"
         >
-          <option value="">All Users</option>
+          {isAdmin ? (
+            <option value="">All Users (Admin)</option>
+          ) : (
+            <option value={user?.username || ''}>My Processes ({user?.username})</option>
+          )}
           {availableUsers.map((u) => (
             <option key={u} value={u}>
               User: {u}

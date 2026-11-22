@@ -21,6 +21,14 @@ export const processService = {
   },
 
   /**
+   * Fetch distinct active users running processes on the system
+   */
+  async getActiveUsers(): Promise<string[]> {
+    const res = await apiClient.get<{ users: string[] }>('/api/v1/processes/users');
+    return res.data.users || [];
+  },
+
+  /**
    * Fetch full details for a single process
    */
   async getProcess(pid: number): Promise<ProcessDetails> {

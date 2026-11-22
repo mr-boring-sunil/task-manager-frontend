@@ -30,6 +30,7 @@ export const ProcessesPage: React.FC = () => {
 
   const [processes, setProcesses] = useState<Process[]>([]);
   const [pagination, setPagination] = useState<ProcessPagination | null>(null);
+  const [activeUsers, setActiveUsers] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isLiveStreamActive, setIsLiveStreamActive] = useState<boolean>(false);
   // When a process is freshly spawned, suppress the SSE override for a short
@@ -67,6 +68,9 @@ export const ProcessesPage: React.FC = () => {
       const data = await processService.listProcesses(query);
       setProcesses(data.processes);
       setPagination(data.pagination);
+      if (data.users && Array.isArray(data.users)) {
+        setActiveUsers(data.users);
+      }
     } catch (err) {
       console.error('Failed to fetch processes:', err);
     } finally {
@@ -127,14 +131,14 @@ export const ProcessesPage: React.FC = () => {
     }
   };
 
-  // Derive unique users list from loaded processes
+  // Derive unique users list from backend activeUsers metadata, augmented by current processes
   const availableUsers = useMemo(() => {
-    const set = new Set<string>(['pi', 'root']);
+    const set = new Set<string>(activeUsers);
     processes.forEach((p) => {
       if (p.username) set.add(p.username);
     });
     return Array.from(set);
-  }, [processes]);
+  }, [activeUsers, processes]);
 
   // Count processes with unknown state on the current page
   const unknownCount = useMemo(

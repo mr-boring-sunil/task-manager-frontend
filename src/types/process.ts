@@ -46,6 +46,7 @@ export interface ProcessPagination {
 export interface ProcessListResponseData {
   processes: Process[];
   pagination: ProcessPagination;
+  users?: string[];
 }
 
 export interface ProcessListQuery {
