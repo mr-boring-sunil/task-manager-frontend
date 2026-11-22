@@ -21,6 +21,10 @@ export class AuthService {
       apiClient.setCsrfToken(res.data.csrfToken);
     }
 
+    if (res.data?.token) {
+      apiClient.setAuthCredentials(res.data.token, 'bearer');
+    }
+
     return res.data;
   }
 
@@ -32,6 +36,10 @@ export class AuthService {
 
     if (res.data?.csrfToken) {
       apiClient.setCsrfToken(res.data.csrfToken);
+    }
+
+    if (res.data?.token) {
+      apiClient.setAuthCredentials(res.data.token, 'bearer');
     }
 
     return res.data;
@@ -53,6 +61,7 @@ export class AuthService {
       await apiClient.post('/api/v1/auth/logout');
     } finally {
       apiClient.setCsrfToken(null);
+      apiClient.setAuthCredentials(null);
     }
   }
 }

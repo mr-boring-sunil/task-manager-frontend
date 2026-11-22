@@ -7,7 +7,9 @@
 import { DiscoveredDevice } from '../types/auth';
 
 const KNOWN_CANDIDATE_HOSTS = [
+  'task-manager',
   'task-manager.local',
+  'raspberrypi',
   'raspberrypi.local',
   'localhost',
   '127.0.0.1',

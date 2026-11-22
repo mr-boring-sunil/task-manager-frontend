@@ -22,6 +22,7 @@ export interface AuthSession {
 export interface LoginResult {
   user: AuthUser;
   session: AuthSession;
+  token?: string;
   csrfToken?: string;
 }
 
@@ -29,6 +30,7 @@ export interface SessionResult {
   authenticated: boolean;
   user: AuthUser;
   session: AuthSession;
+  token?: string;
   csrfToken?: string;
 }
 
