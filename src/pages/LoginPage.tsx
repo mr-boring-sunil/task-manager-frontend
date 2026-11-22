@@ -18,7 +18,7 @@ import {
   RefreshCw,
   Cpu,
 } from 'lucide-react';
-import { useAuth } from '../../src/context/AuthContext';
+import { useAuth } from '../context/AuthContext';
 
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
