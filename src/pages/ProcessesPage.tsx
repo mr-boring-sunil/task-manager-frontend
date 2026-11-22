@@ -32,6 +32,9 @@ export const ProcessesPage: React.FC = () => {
   const [pagination, setPagination] = useState<ProcessPagination | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isLiveStreamActive, setIsLiveStreamActive] = useState<boolean>(false);
+  // When a process is freshly spawned, suppress the SSE override for a short
+  // window so fetchProcesses() result isn't immediately overwritten by a stale snapshot.
+  const [suppressSseUntil, setSuppressSseUntil] = useState<number>(0);
 
   // Inspector & Modal States
   const [inspectPid, setInspectPid] = useState<number | null>(() => {
@@ -91,15 +94,22 @@ export const ProcessesPage: React.FC = () => {
     fetchProcesses();
   }, [fetchProcesses]);
 
-  // If live stream provides data and we are on page 1 without custom filters, update
+  // If live stream provides data and we are on page 1 without custom filters, update.
+  // Skip if we just spawned a process (suppressSseUntil) to avoid overwriting fresh REST data.
   useEffect(() => {
-    if (isLiveStreamActive && sseProcesses.length > 0 && query.page === 1 && !query.search) {
+    if (
+      isLiveStreamActive &&
+      sseProcesses.length > 0 &&
+      query.page === 1 &&
+      !query.search &&
+      Date.now() > suppressSseUntil
+    ) {
       setProcesses(sseProcesses);
       if (ssePagination) {
         setPagination(ssePagination);
       }
     }
-  }, [isLiveStreamActive, sseProcesses, ssePagination, query.page, query.search]);
+  }, [isLiveStreamActive, sseProcesses, ssePagination, query.page, query.search, suppressSseUntil]);
 
   const handleQueryChange = (updated: Partial<ProcessListQuery>) => {
     setQuery((prev) => ({ ...prev, ...updated }));
@@ -214,7 +224,18 @@ export const ProcessesPage: React.FC = () => {
       <CreateProcessDialog
         isOpen={isCreateOpen}
         onSuccess={(result) => {
+          // Suppress SSE override for 3 s so the freshly-spawned PID isn't
+          // immediately wiped by a stale stream snapshot.
+          setSuppressSseUntil(Date.now() + 3000);
+
+          // First fetch: catches long-running processes that are already listed.
           fetchProcesses();
+
+          // Second fetch after 1 s: catches processes whose /proc entry the OS
+          // hadn't registered yet when the first fetch ran. The 300 ms backend
+          // delay + ~700 ms network round-trip gives the kernel enough time.
+          setTimeout(() => fetchProcesses(), 1000);
+
           if (result?.pid) {
             setInspectPid(result.pid);
           }
